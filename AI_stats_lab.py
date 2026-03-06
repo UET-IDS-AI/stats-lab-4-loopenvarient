@@ -36,8 +36,15 @@ def cdf_probabilities():
         analytic_interval
         simulated_gt5
     """
+    analytic_gt5 = math.exp(-5)                 
+    analytic_lt5 = 1 - math.exp(-5)            
+    analytic_interval = math.exp(-3) - math.exp(-7) 
+    range = np.random.default_rng(42)
+    samples = range.exponential(scale=1.0, size=100000)  
+    simulated_gt5 = float(np.mean(samples > 5))
 
-    raise NotImplementedError
+    return analytic_gt5, analytic_lt5, analytic_interval, simulated_gt5
+
 
 
 # =========================================================
@@ -70,7 +77,25 @@ def pdf_validation_plot():
         is_valid_pdf
     """
 
-    raise NotImplementedError
+    def f(x):
+        # 2x e^{-x^2} for x>=0, 0 otherwise
+        return 2 * x * math.exp(-x * x) if x >= 0 else 0.0
+    integral_value, _ = quad(lambda t: 2 * t * math.exp(-t * t), 0, np.inf)
+
+    is_valid_pdf = abs(integral_value - 1.0) < 1e-3
+
+    xs = np.linspace(0, 3, 400)
+    ys = 2 * xs * np.exp(-xs**2)
+    plt.figure()
+    plt.plot(xs, ys)
+    plt.title(r"Candidate PDF: $f(x)=2x e^{-x^2}u(x)$")
+    plt.xlabel("x")
+    plt.ylabel("f(x)")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+    return float(integral_value), bool(is_valid_pdf)
 
 
 # =========================================================
@@ -101,7 +126,14 @@ def exponential_probabilities():
         simulated_interval
     """
 
-    raise NotImplementedError
+    analytic_gt5 = math.exp(-5)                         
+    analytic_interval = math.exp(-1) - math.exp(-3)      
+    range = np.random.default_rng(42)
+    samples = range.exponential(scale=1.0, size=100000)
+    simulated_gt5 = float(np.mean(samples > 5))
+    simulated_interval = float(np.mean((samples > 1) & (samples < 3)))
+
+    return analytic_gt5, analytic_interval, simulated_gt5, simulated_interval
 
 
 # =========================================================
@@ -137,4 +169,16 @@ def gaussian_probabilities():
         simulated_interval
     """
 
-    raise NotImplementedError
+    mu = 10.0
+    sigma = 2.0
+    z12 = (12 - mu) / sigma
+    analytic_le12 = float(norm.cdf(z12))
+    z8 = (8 - mu) / sigma
+    analytic_interval = float(norm.cdf(z12) - norm.cdf(z8))
+    range = np.random.default_rng(42)
+    samples = range.normal(loc=mu, scale=sigma, size=100000)
+
+    simulated_le12 = float(np.mean(samples <= 12))
+    simulated_interval = float(np.mean((samples > 8) & (samples < 12)))
+
+    return analytic_le12, analytic_interval, simulated_le12, simulated_interval
